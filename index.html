@@ -80,6 +80,15 @@
   #death-screen h2 { font-size: 36px; color: #f04; text-shadow: 0 0 30px #f048; letter-spacing: 8px; margin-bottom: 16px; }
   #death-screen .stats { font-size: 12px; color: #0af; letter-spacing: 2px; font-family: 'Share Tech Mono', monospace; margin-bottom: 30px; }
   #death-screen .prompt { font-size: 13px; color: #0ff8; letter-spacing: 3px; animation: pulse 1.5s ease-in-out infinite; }
+  #gamepad-debug {
+    position: absolute; bottom: 10px; left: 10px; right: 10px;
+    background: rgba(0,5,20,0.92); border: 1px solid #0af3; border-radius: 4px;
+    padding: 8px 14px; font-size: 10px; font-family: 'Share Tech Mono', monospace;
+    color: #0af; letter-spacing: 1px; z-index: 200; max-height: 120px; overflow-y: auto;
+    display: none;
+  }
+  #gamepad-debug.active { display: block; }
+  #gamepad-debug .btn-active { color: #0ff; font-weight: bold; text-shadow: 0 0 6px #0ff; }
 </style>
 </head>
 <body>
@@ -122,7 +131,7 @@
   <div id="title-screen">
     <h1>GRID_RUNNER</h1>
     <div class="subtitle">[ ENTER THE GRID ]</div>
-    <div class="prompt">PRESS START / ENTER / SPACE</div>
+    <div class="prompt">PRESS ANY BUTTON / ENTER / SPACE</div>
     <div class="controls-info">
       GAMEPAD: L-STICK MOVE &bull; A ATTACK &bull; B DISC THROW &bull; X DASH<br>
       KEYBOARD: WASD/ARROWS MOVE &bull; J ATTACK &bull; K DISC &bull; L DASH
@@ -132,8 +141,9 @@
   <div id="death-screen">
     <h2>DEREZZED</h2>
     <div class="stats" id="death-stats"></div>
-    <div class="prompt">PRESS START / ENTER TO REBOOT</div>
+    <div class="prompt">PRESS ANY BUTTON / ENTER TO REBOOT</div>
   </div>
+  <div id="gamepad-debug"></div>
 </div>
 
 <script>
@@ -261,26 +271,81 @@ function initGame() {
 // ==================== INPUT ====================
 window.addEventListener('keydown', e => { keys[e.code] = true; e.preventDefault(); });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
-window.addEventListener('gamepadconnected', e => { gamepad = e.gamepad; addMsg('GAMEPAD CONNECTED: ' + e.gamepad.id.substring(0,30)); });
+window.addEventListener('gamepadconnected', e => {
+  gamepad = e.gamepad;
+  addMsg('GAMEPAD: ' + e.gamepad.id.substring(0, 40));
+  showDebug();
+});
 window.addEventListener('gamepaddisconnected', () => { gamepad = null; });
+
+// Track previous frame button states for "just pressed" detection
+let prevGpButtons = {};
+let gpButtonValues = {};
 
 function pollGamepad() {
   if (!navigator.getGamepads) return;
   const gps = navigator.getGamepads();
   for (const gp of gps) {
-    if (gp) {
+    if (gp && gp.connected) {
       gamepad = gp;
-      gpAxes = [...gp.axes];
+      gpAxes = gp.axes.map(a => a);
+      prevGpButtons = {...gpButtons};
       const newBtns = {};
-      gp.buttons.forEach((b, i) => { newBtns[i] = b.pressed; });
+      gpButtonValues = {};
+      gp.buttons.forEach((b, i) => {
+        // Some controllers report value instead of pressed
+        newBtns[i] = b.pressed || b.value > 0.5;
+        gpButtonValues[i] = b.value;
+      });
       gpButtons = newBtns;
+      updateDebug(gp);
       return;
     }
   }
 }
 
-function btnPressed(idx) { return gpButtons[idx]; }
-function btnJustPressed(idx) { return gpButtons[idx]; }
+function anyButtonPressed() {
+  for (const k in gpButtons) {
+    if (gpButtons[k]) return true;
+  }
+  return false;
+}
+
+function anyButtonJustPressed() {
+  for (const k in gpButtons) {
+    if (gpButtons[k] && !prevGpButtons[k]) return true;
+  }
+  return false;
+}
+
+function btnPressed(idx) { return gpButtons[idx] === true; }
+function btnJustPressed(idx) { return gpButtons[idx] && !prevGpButtons[idx]; }
+
+// Diagnostic debug panel
+const debugEl = document.getElementById('gamepad-debug');
+let debugVisible = false;
+
+function showDebug() {
+  debugEl.classList.add('active');
+  debugVisible = true;
+}
+
+function updateDebug(gp) {
+  if (!debugVisible) return;
+  let html = `<div style="margin-bottom:4px;color:#0ff">ID: ${gp.id}</div>`;
+  html += '<div>BUTTONS: ';
+  gp.buttons.forEach((b, i) => {
+    const active = b.pressed || b.value > 0.5;
+    html += `<span class="${active ? 'btn-active' : ''}">[${i}:${b.value.toFixed(1)}]</span> `;
+  });
+  html += '</div><div>AXES: ';
+  gp.axes.forEach((a, i) => {
+    const active = Math.abs(a) > 0.2;
+    html += `<span class="${active ? 'btn-active' : ''}">${i}:${a.toFixed(2)}</span> `;
+  });
+  html += '</div>';
+  debugEl.innerHTML = html;
+}
 
 function getInput() {
   let mx = 0, my = 0;
@@ -289,17 +354,38 @@ function getInput() {
   if (keys['KeyS'] || keys['ArrowDown']) my += 1;
   if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
   if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
-  // Gamepad sticks
-  if (Math.abs(gpAxes[0]) > 0.2) mx += gpAxes[0];
-  if (Math.abs(gpAxes[1]) > 0.2) my += gpAxes[1];
+
+  // Gamepad sticks — try axes 0/1, also check axes 2/3 for some mappings
+  if (gpAxes.length >= 2) {
+    if (Math.abs(gpAxes[0]) > 0.2) mx += gpAxes[0];
+    if (Math.abs(gpAxes[1]) > 0.2) my += gpAxes[1];
+  }
+  // Some controllers map dpad to axes 6/7 or 4/5
+  if (gpAxes.length >= 8) {
+    if (Math.abs(gpAxes[6]) > 0.5) mx += gpAxes[6];
+    if (Math.abs(gpAxes[7]) > 0.5) my += gpAxes[7];
+  }
+  // DPad as buttons (standard mapping: 12=up,13=down,14=left,15=right)
+  if (btnPressed(12)) my -= 1;
+  if (btnPressed(13)) my += 1;
+  if (btnPressed(14)) mx -= 1;
+  if (btnPressed(15)) mx += 1;
+
   // Normalize
   const mag = Math.hypot(mx, my);
   if (mag > 1) { mx /= mag; my /= mag; }
 
-  const attack = keys['KeyJ'] || btnPressed(0); // A button
-  const disc = keys['KeyK'] || btnPressed(1);   // B button
-  const dash = keys['KeyL'] || btnPressed(2);    // X button
-  const start = keys['Enter'] || keys['Space'] || btnPressed(9) || btnPressed(0);
+  // Action buttons — accept multiple possible mappings
+  // Standard: 0=A(South), 1=B(East), 2=X(West), 3=Y(North)
+  // Also try: triggers as buttons 6,7
+  const attack = keys['KeyJ'] || btnPressed(0) || btnPressed(2);   // A or X
+  const disc = keys['KeyK'] || btnPressed(1) || btnPressed(3);     // B or Y
+  const dash = keys['KeyL'] || btnPressed(4) || btnPressed(5);     // LB/RB bumpers
+  
+  // Start: accept almost any button for menu purposes
+  const start = keys['Enter'] || keys['Space'] || 
+                anyButtonJustPressed();
+
   return { mx, my, attack, disc, dash, start };
 }
 
@@ -353,10 +439,10 @@ function addMsg(text) {
 }
 
 // ==================== UPDATE ====================
-function update(dt) {
+function update(dt, input) {
   if (state !== 'playing') return;
   gameTime += dt;
-  const input = getInput();
+  if (!input) input = getInput();
 
   // ---- Player movement ----
   let spd = player.speed;
@@ -795,6 +881,7 @@ function render() {
 // ==================== GAME LOOP ====================
 let lastTime = 0;
 let startWait = 0;
+let inputLockout = 0; // prevents start button from triggering attacks immediately
 
 function loop(time) {
   requestAnimationFrame(loop);
@@ -803,33 +890,43 @@ function loop(time) {
 
   pollGamepad();
   const input = getInput();
+  startWait -= dt;
+  inputLockout -= dt;
 
   if (state === 'title') {
-    render(); // show empty
+    render();
     if (input.start && startWait <= 0) {
       state = 'playing';
       document.getElementById('title-screen').style.display = 'none';
+      // Hide debug after game starts (we saw what we needed)
+      setTimeout(() => { debugEl.classList.remove('active'); debugVisible = false; }, 3000);
       initGame();
-      startWait = 0.3;
+      startWait = 0.5;
+      inputLockout = 0.5; // prevent immediate attack on game start
     }
-    startWait -= dt;
     return;
   }
 
   if (state === 'dead') {
     render();
-    startWait -= dt;
     if (input.start && startWait <= 0) {
       state = 'playing';
       document.getElementById('death-screen').style.display = 'none';
       initGame();
-      startWait = 0.3;
+      startWait = 0.5;
+      inputLockout = 0.5;
     }
     return;
   }
 
-  startWait -= dt;
-  update(dt);
+  // Suppress action inputs during lockout period
+  if (inputLockout > 0) {
+    input.attack = false;
+    input.disc = false;
+    input.dash = false;
+  }
+
+  update(dt, input);
   render();
 }
 
