@@ -766,16 +766,16 @@ function update(dt){
     trailSegs[j].age+=dt;
   }
 
-  // Camera follow — wider pulled-back view
+  // Camera follow — elevated tactical view (between tight chase and full orbit)
   if(player && player.alive){
-    const cd=14, ch=8;  // increased from 8/5 for wider field
+    const cd=22, ch=16;
     const idealX=player.x-Math.sin(player.angle)*cd;
     const idealZ=player.z-Math.cos(player.angle)*cd;
     const idealPos=new THREE.Vector3(idealX, player.gy+ch, idealZ);
     const lookTarget=new THREE.Vector3(
-      player.x+Math.sin(player.angle)*14,
-      player.gy+1.0,
-      player.z+Math.cos(player.angle)*14
+      player.x+Math.sin(player.angle)*18,
+      player.gy+0.5,
+      player.z+Math.cos(player.angle)*18
     );
     // FIX: faster lerp so camera doesn't lag behind for ages
     camera.position.lerp(idealPos, 0.12);
@@ -880,16 +880,16 @@ function initRound(){
   }
 
   // Snap camera to player position immediately
-  const cd=14, ch=8;
+  const cd=22, ch=16;
   camera.position.set(
     player.x - Math.sin(player.angle)*cd,
     player.gy + ch,
     player.z - Math.cos(player.angle)*cd
   );
   camera.lookAt(
-    player.x + Math.sin(player.angle)*14,
-    player.gy + 1.0,
-    player.z + Math.cos(player.angle)*14
+    player.x + Math.sin(player.angle)*18,
+    player.gy + 0.5,
+    player.z + Math.cos(player.angle)*18
   );
 }
 
