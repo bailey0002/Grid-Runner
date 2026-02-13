@@ -2,937 +2,330 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GRID_RUNNER — Tron RPG Demo</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #000008;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    min-height: 100vh; font-family: 'Orbitron', sans-serif; color: #0ff; overflow: hidden;
-  }
-  #game-wrapper {
-    position: relative;
-    border: 2px solid #0af4;
-    border-radius: 4px;
-    box-shadow: 0 0 60px rgba(0, 170, 255, 0.12), 0 0 2px #0af;
-  }
-  canvas { display: block; border-radius: 2px; }
-  #hud {
-    position: absolute; top: 10px; left: 10px; right: 10px;
-    display: flex; justify-content: space-between; pointer-events: none; z-index: 10;
-  }
-  .hud-panel {
-    background: rgba(0, 5, 20, 0.88); border: 1px solid #0af3; border-radius: 4px;
-    padding: 7px 14px; font-size: 11px; letter-spacing: 1.5px;
-    display: flex; gap: 18px; align-items: center; text-transform: uppercase;
-    box-shadow: 0 0 12px rgba(0,170,255,0.08);
-  }
-  .stat { display: flex; align-items: center; gap: 5px; }
-  .stat-label { color: #0af8; font-size: 9px; font-family: 'Share Tech Mono', monospace; }
-  .stat-value { color: #0ff; font-weight: 700; font-size: 13px; text-shadow: 0 0 8px #0ff4; }
-  .bar-outer { height: 7px; border-radius: 3px; overflow: hidden; border: 1px solid #0af3; }
-  .bar-hp { width: 110px; background: #100008; }
-  .bar-hp .bar-fill { background: linear-gradient(90deg, #f04, #f08c00); box-shadow: 0 0 6px #f04; }
-  .bar-xp { width: 80px; background: #000818; }
-  .bar-xp .bar-fill { background: linear-gradient(90deg, #08f, #0ff); box-shadow: 0 0 6px #08f; }
-  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-  #messages {
-    position: absolute; bottom: 10px; left: 10px; right: 10px;
-    pointer-events: none; z-index: 10; display: flex; flex-direction: column; gap: 4px; align-items: center;
-  }
-  .message {
-    background: rgba(0,5,20,0.92); border: 1px solid #0af3; border-radius: 3px;
-    padding: 5px 16px; font-size: 11px; font-family: 'Share Tech Mono', monospace;
-    color: #0ff; letter-spacing: 1px; text-shadow: 0 0 6px #0ff4;
-    animation: msgFade 3s forwards;
-  }
-  @keyframes msgFade { 0%{opacity:1;transform:translateY(0)} 70%{opacity:1} 100%{opacity:0;transform:translateY(-10px)} }
-  #title-screen {
-    position: absolute; inset: 0; z-index: 100;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: radial-gradient(ellipse at 50% 80%, #001030 0%, #000008 70%);
-  }
-  #title-screen h1 {
-    font-size: 48px; font-weight: 900; letter-spacing: 12px; color: #0ff;
-    text-shadow: 0 0 30px #0ff8, 0 0 60px #0af4, 0 0 4px #fff;
-    margin-bottom: 8px;
-  }
-  #title-screen .subtitle {
-    font-size: 13px; letter-spacing: 6px; color: #0af; margin-bottom: 50px;
-    font-family: 'Share Tech Mono', monospace;
-  }
-  #title-screen .prompt {
-    font-size: 14px; letter-spacing: 3px; color: #0ff8;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-  .controls-info {
-    margin-top: 40px; font-size: 10px; color: #0af6; letter-spacing: 2px;
-    font-family: 'Share Tech Mono', monospace; text-align: center; line-height: 2;
-  }
-  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
-  #death-screen {
-    position: absolute; inset: 0; z-index: 100; display: none;
-    flex-direction: column; align-items: center; justify-content: center;
-    background: rgba(0,0,8,0.92);
-  }
-  #death-screen h2 { font-size: 36px; color: #f04; text-shadow: 0 0 30px #f048; letter-spacing: 8px; margin-bottom: 16px; }
-  #death-screen .stats { font-size: 12px; color: #0af; letter-spacing: 2px; font-family: 'Share Tech Mono', monospace; margin-bottom: 30px; }
-  #death-screen .prompt { font-size: 13px; color: #0ff8; letter-spacing: 3px; animation: pulse 1.5s ease-in-out infinite; }
-  #gamepad-debug {
-    position: absolute; bottom: 10px; left: 10px; right: 10px;
-    background: rgba(0,5,20,0.92); border: 1px solid #0af3; border-radius: 4px;
-    padding: 8px 14px; font-size: 10px; font-family: 'Share Tech Mono', monospace;
-    color: #0af; letter-spacing: 1px; z-index: 200; max-height: 120px; overflow-y: auto;
-    display: none;
-  }
-  #gamepad-debug.active { display: block; }
-  #gamepad-debug .btn-active { color: #0ff; font-weight: bold; text-shadow: 0 0 6px #0ff; }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none}
+body{background:#000008;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;color:#0ff}
+#game-wrapper{position:relative;border:2px solid #0af4;border-radius:4px;box-shadow:0 0 60px rgba(0,170,255,0.12),0 0 2px #0af}
+canvas{display:block;border-radius:2px}
+#hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none;z-index:10}
+.hud-panel{background:rgba(0,5,20,0.88);border:1px solid #0af3;border-radius:4px;padding:5px 10px;font-size:10px;letter-spacing:1.2px;display:flex;gap:12px;align-items:center;text-transform:uppercase;box-shadow:0 0 12px rgba(0,170,255,0.08)}
+.stat{display:flex;align-items:center;gap:4px}
+.stat-label{color:#0af8;font-size:8px;font-family:'Share Tech Mono',monospace}
+.stat-value{color:#0ff;font-weight:700;font-size:11px;text-shadow:0 0 8px #0ff4}
+.bar-outer{height:6px;border-radius:3px;overflow:hidden;border:1px solid #0af3}
+.bar-hp{width:80px;background:#100008}
+.bar-hp .bar-fill{background:linear-gradient(90deg,#f04,#f08c00);box-shadow:0 0 6px #f04}
+.bar-xp{width:60px;background:#000818}
+.bar-xp .bar-fill{background:linear-gradient(90deg,#08f,#0ff);box-shadow:0 0 6px #08f}
+.bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
+#messages{position:absolute;bottom:180px;left:10px;right:10px;pointer-events:none;z-index:10;display:flex;flex-direction:column;gap:3px;align-items:center}
+.message{background:rgba(0,5,20,0.92);border:1px solid #0af3;border-radius:3px;padding:4px 12px;font-size:10px;font-family:'Share Tech Mono',monospace;color:#0ff;letter-spacing:1px;text-shadow:0 0 6px #0ff4;animation:msgFade 3s forwards}
+@keyframes msgFade{0%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+
+/* VIRTUAL CONTROLS */
+#touch-controls{position:absolute;bottom:0;left:0;right:0;height:170px;pointer-events:none;z-index:50;display:none}
+#touch-controls.active{display:block}
+#joystick-zone{position:absolute;bottom:16px;left:16px;width:130px;height:130px;pointer-events:auto}
+#joystick-base{position:absolute;inset:0;border:2px solid #0af4;border-radius:50%;background:rgba(0,10,30,0.5);box-shadow:0 0 20px rgba(0,170,255,0.1),inset 0 0 20px rgba(0,170,255,0.05)}
+#joystick-knob{position:absolute;width:48px;height:48px;top:50%;left:50%;transform:translate(-50%,-50%);border:2px solid #0ff;border-radius:50%;background:rgba(0,255,255,0.15);box-shadow:0 0 16px rgba(0,255,255,0.3);transition:box-shadow 0.15s}
+#joystick-knob.active{background:rgba(0,255,255,0.3);box-shadow:0 0 24px rgba(0,255,255,0.5)}
+.action-buttons{position:absolute;bottom:20px;right:12px;display:grid;grid-template-columns:56px 56px;grid-template-rows:56px 56px;gap:10px;pointer-events:auto}
+.action-btn{width:56px;height:56px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.5px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:all 0.1s;-webkit-tap-highlight-color:transparent}
+.action-btn:active,.action-btn.pressed{transform:scale(0.9)}
+.btn-attack{border-color:#0ff;color:#0ff;background:rgba(0,255,255,0.1);box-shadow:0 0 16px rgba(0,255,255,0.2);grid-column:2;grid-row:1}
+.btn-attack.pressed{background:rgba(0,255,255,0.35);box-shadow:0 0 24px rgba(0,255,255,0.5)}
+.btn-disc{border-color:#f0f;color:#f0f;background:rgba(255,0,255,0.1);box-shadow:0 0 16px rgba(255,0,255,0.2);grid-column:1;grid-row:1}
+.btn-disc.pressed{background:rgba(255,0,255,0.35);box-shadow:0 0 24px rgba(255,0,255,0.5)}
+.btn-dash{border-color:#ff0;color:#ff0;background:rgba(255,255,0,0.1);box-shadow:0 0 16px rgba(255,255,0,0.2);grid-column:1;grid-row:2}
+.btn-dash.pressed{background:rgba(255,255,0,0.35);box-shadow:0 0 24px rgba(255,255,0,0.5)}
+
+/* OVERLAYS */
+#title-screen{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 80%,#001030 0%,#000008 70%)}
+#title-screen h1{font-size:clamp(26px,6vw,48px);font-weight:900;letter-spacing:10px;color:#0ff;text-shadow:0 0 30px #0ff8,0 0 60px #0af4,0 0 4px #fff;margin-bottom:8px}
+#title-screen .subtitle{font-size:clamp(10px,2vw,13px);letter-spacing:6px;color:#0af;margin-bottom:40px;font-family:'Share Tech Mono',monospace}
+.start-btn{padding:14px 40px;border:2px solid #0ff;border-radius:4px;background:rgba(0,255,255,0.08);color:#0ff;font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:4px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,255,0.15);transition:all 0.2s;animation:pulse 1.5s ease-in-out infinite;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.start-btn:hover,.start-btn:active{background:rgba(0,255,255,0.25);box-shadow:0 0 30px rgba(0,255,255,0.3)}
+.controls-info{margin-top:30px;font-size:9px;color:#0af6;letter-spacing:1.5px;font-family:'Share Tech Mono',monospace;text-align:center;line-height:2.2}
+@keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+#death-screen{position:absolute;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,8,0.92)}
+#death-screen h2{font-size:32px;color:#f04;text-shadow:0 0 30px #f048;letter-spacing:8px;margin-bottom:14px}
+#death-screen .stats{font-size:11px;color:#0af;letter-spacing:2px;font-family:'Share Tech Mono',monospace;margin-bottom:24px}
 </style>
 </head>
 <body>
-
 <div id="game-wrapper">
-  <canvas id="game"></canvas>
-  <div id="hud">
-    <div class="hud-panel">
-      <div class="stat">
-        <span class="stat-label">HP</span>
-        <div class="bar-outer bar-hp"><div class="bar-fill" id="hp-bar"></div></div>
-        <span class="stat-value" id="hp-val"></span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">LVL</span>
-        <span class="stat-value" id="lvl-val"></span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">XP</span>
-        <div class="bar-outer bar-xp"><div class="bar-fill" id="xp-bar"></div></div>
-      </div>
-    </div>
-    <div class="hud-panel">
-      <div class="stat">
-        <span class="stat-label">ATK</span>
-        <span class="stat-value" id="atk-val"></span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">DISC</span>
-        <span class="stat-value" id="disc-val"></span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">SCORE</span>
-        <span class="stat-value" id="score-val"></span>
-      </div>
-    </div>
-  </div>
-  <div id="messages"></div>
-
-  <div id="title-screen">
-    <h1>GRID_RUNNER</h1>
-    <div class="subtitle">[ ENTER THE GRID ]</div>
-    <div class="prompt">PRESS ANY BUTTON / ENTER / SPACE</div>
-    <div class="controls-info">
-      GAMEPAD: L-STICK MOVE &bull; A ATTACK &bull; B DISC THROW &bull; X DASH<br>
-      KEYBOARD: WASD/ARROWS MOVE &bull; J ATTACK &bull; K DISC &bull; L DASH
-    </div>
-  </div>
-
-  <div id="death-screen">
-    <h2>DEREZZED</h2>
-    <div class="stats" id="death-stats"></div>
-    <div class="prompt">PRESS ANY BUTTON / ENTER TO REBOOT</div>
-  </div>
-  <div id="gamepad-debug"></div>
+<canvas id="game"></canvas>
+<div id="hud">
+<div class="hud-panel">
+<div class="stat"><span class="stat-label">HP</span><div class="bar-outer bar-hp"><div class="bar-fill" id="hp-bar"></div></div><span class="stat-value" id="hp-val"></span></div>
+<div class="stat"><span class="stat-label">LVL</span><span class="stat-value" id="lvl-val"></span></div>
+<div class="stat"><span class="stat-label">XP</span><div class="bar-outer bar-xp"><div class="bar-fill" id="xp-bar"></div></div></div>
 </div>
-
+<div class="hud-panel">
+<div class="stat"><span class="stat-label">ATK</span><span class="stat-value" id="atk-val"></span></div>
+<div class="stat"><span class="stat-label">DISC</span><span class="stat-value" id="disc-val"></span></div>
+<div class="stat"><span class="stat-label">SCORE</span><span class="stat-value" id="score-val"></span></div>
+</div>
+</div>
+<div id="messages"></div>
+<div id="touch-controls">
+<div id="joystick-zone"><div id="joystick-base"></div><div id="joystick-knob"></div></div>
+<div class="action-buttons">
+<div class="action-btn btn-disc" id="btn-disc">DISC</div>
+<div class="action-btn btn-attack" id="btn-atk">ATK</div>
+<div class="action-btn btn-dash" id="btn-dash">DASH</div>
+</div>
+</div>
+<div id="title-screen">
+<h1>GRID_RUNNER</h1>
+<div class="subtitle">[ ENTER THE GRID ]</div>
+<button class="start-btn" id="start-btn">▶ START</button>
+<div class="controls-info">TOUCH: VIRTUAL JOYSTICK + BUTTONS<br>KEYBOARD: WASD MOVE • J ATK • K DISC • L DASH</div>
+</div>
+<div id="death-screen">
+<h2>DEREZZED</h2>
+<div class="stats" id="death-stats"></div>
+<button class="start-btn" id="restart-btn">▶ REBOOT</button>
+</div>
+</div>
 <script>
-// ==================== GAME ENGINE ====================
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const W = 800, H = 600;
-canvas.width = W; canvas.height = H;
-
-// ==================== CONSTANTS ====================
-const TILE = 32;
-const MAP_W = 60, MAP_H = 60;
-const PLAYER_COLOR = '#0ff';
-const PLAYER_GLOW = '#0af';
-const ENEMY_COLORS = ['#f04','#f80','#f0f','#ff0'];
-const PICKUP_COLORS = { health:'#0f4', power:'#f80', disc:'#f0f', speed:'#ff0' };
-
-// ==================== GAME STATE ====================
-let state = 'title'; // title, playing, dead
-let gamepad = null;
-let gpButtons = {}, gpAxes = [0,0,0,0];
-let keys = {};
-let player, enemies, projectiles, pickups, particles, messages;
-let camera = {x:0, y:0};
-let score = 0;
-let gameTime = 0;
-let map = [];
-let dashCooldown = 0;
-let attackCooldown = 0;
-let discCooldown = 0;
-
-// ==================== MAP GENERATION ====================
-function generateMap() {
-  map = [];
-  for (let y = 0; y < MAP_H; y++) {
-    map[y] = [];
-    for (let x = 0; x < MAP_W; x++) {
-      // Border walls
-      if (x === 0 || y === 0 || x === MAP_W-1 || y === MAP_H-1) { map[y][x] = 1; continue; }
-      // Scattered structures
-      let isWall = false;
-      // Grid corridors - open lanes every 8 tiles
-      if (x % 8 === 0 || y % 8 === 0) { map[y][x] = 0; continue; }
-      // Random blocks for cover
-      if (Math.random() < 0.08 && !(x > 28 && x < 32 && y > 28 && y < 32)) isWall = true;
-      // Some larger structures
-      if ((x % 16 < 3 && y % 16 < 3) && !(x > 27 && x < 33 && y > 27 && y < 33)) isWall = true;
-      map[y][x] = isWall ? 1 : 0;
-    }
-  }
-}
-
-// ==================== ENTITY FACTORIES ====================
-function createPlayer() {
-  return {
-    x: MAP_W/2 * TILE, y: MAP_H/2 * TILE,
-    w: 20, h: 20, vx: 0, vy: 0,
-    hp: 100, maxHp: 100, atk: 10, speed: 3.2,
-    level: 1, xp: 0, xpNext: 30,
-    discCount: 3, maxDisc: 5,
-    facing: {x:0,y:1}, trail: [],
-    dashTimer: 0, invuln: 0, attackAnim: 0
-  };
-}
-
-function spawnEnemy(px, py) {
-  let x, y, dist;
-  do {
-    x = (3 + Math.random() * (MAP_W - 6)) * TILE;
-    y = (3 + Math.random() * (MAP_H - 6)) * TILE;
-    dist = Math.hypot(x - px, y - py);
-  } while (dist < 300 || dist > 1200 || map[Math.floor(y/TILE)]?.[Math.floor(x/TILE)] === 1);
-
-  const tier = Math.min(3, Math.floor(player.level / 3));
-  const types = [
-    { name:'BUG', hp:20, atk:5, speed:1.5, size:14, behavior:'chase', color:ENEMY_COLORS[0] },
-    { name:'SEEKER', hp:35, atk:8, speed:2.0, size:16, behavior:'chase', color:ENEMY_COLORS[1] },
-    { name:'SENTINEL', hp:60, atk:12, speed:1.2, size:20, behavior:'patrol', color:ENEMY_COLORS[2] },
-    { name:'VIRUS', hp:90, atk:18, speed:2.5, size:22, behavior:'chase', color:ENEMY_COLORS[3] },
-  ];
-  const t = types[Math.min(tier, Math.floor(Math.random() * (tier + 1)))];
-  const scaledHp = t.hp + player.level * 5;
-  const scaledAtk = t.atk + player.level * 1.5;
-  return {
-    x, y, w: t.size, h: t.size, vx: 0, vy: 0,
-    hp: scaledHp, maxHp: scaledHp, atk: scaledAtk, speed: t.speed,
-    name: t.name, color: t.color, behavior: t.behavior,
-    attackCd: 0, patrolAngle: Math.random() * Math.PI * 2,
-    flashTimer: 0, alive: true
-  };
-}
-
-function spawnPickup(x, y) {
-  const types = ['health','health','power','disc','speed'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  return { x, y, type, w: 12, h: 12, bobT: Math.random() * 100, alive: true };
-}
-
-// ==================== INIT ====================
-function initGame() {
-  generateMap();
-  player = createPlayer();
-  enemies = [];
-  projectiles = [];
-  pickups = [];
-  particles = [];
-  messages = [];
-  score = 0;
-  gameTime = 0;
-  dashCooldown = 0; attackCooldown = 0; discCooldown = 0;
-
-  // Spawn initial enemies
-  for (let i = 0; i < 12; i++) enemies.push(spawnEnemy(player.x, player.y));
-  // Spawn pickups
-  for (let i = 0; i < 15; i++) {
-    let px, py;
-    do {
-      px = (3 + Math.random() * (MAP_W - 6)) * TILE;
-      py = (3 + Math.random() * (MAP_H - 6)) * TILE;
-    } while (map[Math.floor(py/TILE)]?.[Math.floor(px/TILE)] === 1);
-    pickups.push(spawnPickup(px, py));
-  }
-}
-
-// ==================== INPUT ====================
-window.addEventListener('keydown', e => { keys[e.code] = true; e.preventDefault(); });
-window.addEventListener('keyup', e => { keys[e.code] = false; });
-window.addEventListener('gamepadconnected', e => {
-  gamepad = e.gamepad;
-  addMsg('GAMEPAD: ' + e.gamepad.id.substring(0, 40));
-  showDebug();
-});
-window.addEventListener('gamepaddisconnected', () => { gamepad = null; });
-
-// Track previous frame button states for "just pressed" detection
-let prevGpButtons = {};
-let gpButtonValues = {};
-
-function pollGamepad() {
-  if (!navigator.getGamepads) return;
-  const gps = navigator.getGamepads();
-  for (const gp of gps) {
-    if (gp && gp.connected) {
-      gamepad = gp;
-      gpAxes = gp.axes.map(a => a);
-      prevGpButtons = {...gpButtons};
-      const newBtns = {};
-      gpButtonValues = {};
-      gp.buttons.forEach((b, i) => {
-        // Some controllers report value instead of pressed
-        newBtns[i] = b.pressed || b.value > 0.5;
-        gpButtonValues[i] = b.value;
-      });
-      gpButtons = newBtns;
-      updateDebug(gp);
-      return;
-    }
-  }
-}
-
-function anyButtonPressed() {
-  for (const k in gpButtons) {
-    if (gpButtons[k]) return true;
-  }
-  return false;
-}
-
-function anyButtonJustPressed() {
-  for (const k in gpButtons) {
-    if (gpButtons[k] && !prevGpButtons[k]) return true;
-  }
-  return false;
-}
-
-function btnPressed(idx) { return gpButtons[idx] === true; }
-function btnJustPressed(idx) { return gpButtons[idx] && !prevGpButtons[idx]; }
-
-// Diagnostic debug panel
-const debugEl = document.getElementById('gamepad-debug');
-let debugVisible = false;
-
-function showDebug() {
-  debugEl.classList.add('active');
-  debugVisible = true;
-}
-
-function updateDebug(gp) {
-  if (!debugVisible) return;
-  let html = `<div style="margin-bottom:4px;color:#0ff">ID: ${gp.id}</div>`;
-  html += '<div>BUTTONS: ';
-  gp.buttons.forEach((b, i) => {
-    const active = b.pressed || b.value > 0.5;
-    html += `<span class="${active ? 'btn-active' : ''}">[${i}:${b.value.toFixed(1)}]</span> `;
-  });
-  html += '</div><div>AXES: ';
-  gp.axes.forEach((a, i) => {
-    const active = Math.abs(a) > 0.2;
-    html += `<span class="${active ? 'btn-active' : ''}">${i}:${a.toFixed(2)}</span> `;
-  });
-  html += '</div>';
-  debugEl.innerHTML = html;
-}
-
-function getInput() {
-  let mx = 0, my = 0;
-  // Keyboard
-  if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
-  if (keys['KeyS'] || keys['ArrowDown']) my += 1;
-  if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
-  if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
-
-  // Gamepad sticks — try axes 0/1, also check axes 2/3 for some mappings
-  if (gpAxes.length >= 2) {
-    if (Math.abs(gpAxes[0]) > 0.2) mx += gpAxes[0];
-    if (Math.abs(gpAxes[1]) > 0.2) my += gpAxes[1];
-  }
-  // Some controllers map dpad to axes 6/7 or 4/5
-  if (gpAxes.length >= 8) {
-    if (Math.abs(gpAxes[6]) > 0.5) mx += gpAxes[6];
-    if (Math.abs(gpAxes[7]) > 0.5) my += gpAxes[7];
-  }
-  // DPad as buttons (standard mapping: 12=up,13=down,14=left,15=right)
-  if (btnPressed(12)) my -= 1;
-  if (btnPressed(13)) my += 1;
-  if (btnPressed(14)) mx -= 1;
-  if (btnPressed(15)) mx += 1;
-
-  // Normalize
-  const mag = Math.hypot(mx, my);
-  if (mag > 1) { mx /= mag; my /= mag; }
-
-  // Action buttons — accept multiple possible mappings
-  // Standard: 0=A(South), 1=B(East), 2=X(West), 3=Y(North)
-  // Also try: triggers as buttons 6,7
-  const attack = keys['KeyJ'] || btnPressed(0) || btnPressed(2);   // A or X
-  const disc = keys['KeyK'] || btnPressed(1) || btnPressed(3);     // B or Y
-  const dash = keys['KeyL'] || btnPressed(4) || btnPressed(5);     // LB/RB bumpers
-  
-  // Start: accept almost any button for menu purposes
-  const start = keys['Enter'] || keys['Space'] || 
-                anyButtonJustPressed();
-
-  return { mx, my, attack, disc, dash, start };
-}
-
-// ==================== COLLISION ====================
-function rectCollide(a, b) {
-  return a.x - a.w/2 < b.x + b.w/2 && a.x + a.w/2 > b.x - b.w/2 &&
-         a.y - a.h/2 < b.y + b.h/2 && a.y + a.h/2 > b.y - b.h/2;
-}
-
-function wallAt(px, py) {
-  const tx = Math.floor(px / TILE), ty = Math.floor(py / TILE);
-  if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return true;
-  return map[ty][tx] === 1;
-}
-
-function moveEntity(e, dx, dy) {
-  // X
-  const nx = e.x + dx;
-  const half = e.w / 2 + 1;
-  if (!wallAt(nx - half, e.y - half) && !wallAt(nx + half, e.y - half) &&
-      !wallAt(nx - half, e.y + half) && !wallAt(nx + half, e.y + half)) {
-    e.x = nx;
-  }
-  // Y
-  const ny = e.y + dy;
-  if (!wallAt(e.x - half, ny - half) && !wallAt(e.x + half, ny - half) &&
-      !wallAt(e.x - half, ny + half) && !wallAt(e.x + half, ny + half)) {
-    e.y = ny;
-  }
-}
-
-// ==================== PARTICLES ====================
-function emitParticles(x, y, color, count, speed) {
-  for (let i = 0; i < count; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const s = Math.random() * speed;
-    particles.push({
-      x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s,
-      life: 0.5 + Math.random()*0.5, maxLife: 0.5 + Math.random()*0.5,
-      color, size: 2 + Math.random()*3
-    });
-  }
-}
-
-// ==================== MESSAGES ====================
-function addMsg(text) {
-  const el = document.createElement('div');
-  el.className = 'message'; el.textContent = text;
-  document.getElementById('messages').appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-// ==================== UPDATE ====================
-function update(dt, input) {
-  if (state !== 'playing') return;
-  gameTime += dt;
-  if (!input) input = getInput();
-
-  // ---- Player movement ----
-  let spd = player.speed;
-  if (player.dashTimer > 0) { spd = 10; player.dashTimer -= dt; }
-  moveEntity(player, input.mx * spd, input.my * spd);
-  if (input.mx !== 0 || input.my !== 0) {
-    player.facing = { x: input.mx, y: input.my };
-    // Trail
-    player.trail.push({ x: player.x, y: player.y, life: 0.4 });
-  }
-  if (player.trail.length > 30) player.trail.shift();
-  player.trail.forEach(t => t.life -= dt);
-  player.trail = player.trail.filter(t => t.life > 0);
-
-  // ---- Dash ----
-  dashCooldown -= dt;
-  if (input.dash && dashCooldown <= 0 && (input.mx !== 0 || input.my !== 0)) {
-    player.dashTimer = 0.15;
-    dashCooldown = 1.0;
-    emitParticles(player.x, player.y, '#0ff', 8, 4);
-  }
-
-  // ---- Attack (melee) ----
-  attackCooldown -= dt;
-  if (input.attack && attackCooldown <= 0) {
-    attackCooldown = 0.35;
-    player.attackAnim = 0.2;
-    const ax = player.x + player.facing.x * 24;
-    const ay = player.y + player.facing.y * 24;
-    const hitbox = { x: ax, y: ay, w: 28, h: 28 };
-    enemies.forEach(e => {
-      if (e.alive && rectCollide(hitbox, e)) {
-        e.hp -= player.atk;
-        e.flashTimer = 0.12;
-        emitParticles(e.x, e.y, e.color, 6, 3);
-        if (e.hp <= 0) killEnemy(e);
-      }
-    });
-    emitParticles(ax, ay, '#0ff', 4, 2);
-  }
-  player.attackAnim = Math.max(0, player.attackAnim - dt);
-
-  // ---- Disc throw ----
-  discCooldown -= dt;
-  if (input.disc && discCooldown <= 0 && player.discCount > 0) {
-    discCooldown = 0.5;
-    player.discCount--;
-    const fx = player.facing.x || 0, fy = player.facing.y || 1;
-    const mag = Math.hypot(fx, fy) || 1;
-    projectiles.push({
-      x: player.x, y: player.y,
-      vx: (fx/mag) * 6, vy: (fy/mag) * 6,
-      dmg: player.atk * 1.5, life: 1.5, owner: 'player',
-      color: '#f0f', size: 6, trail: []
-    });
-  }
-
-  // ---- Invulnerability ----
-  player.invuln = Math.max(0, player.invuln - dt);
-
-  // ---- Projectiles ----
-  projectiles.forEach(p => {
-    p.trail.push({ x: p.x, y: p.y, life: 0.2 });
-    if (p.trail.length > 12) p.trail.shift();
-    p.trail.forEach(t => t.life -= dt);
-    p.trail = p.trail.filter(t => t.life > 0);
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life -= dt;
-    if (wallAt(p.x, p.y)) p.life = 0;
-    if (p.owner === 'player') {
-      enemies.forEach(e => {
-        if (e.alive && rectCollide(p, { x: e.x, y: e.y, w: e.w, h: e.h })) {
-          e.hp -= p.dmg;
-          e.flashTimer = 0.12;
-          emitParticles(e.x, e.y, e.color, 8, 3);
-          p.life = 0;
-          if (e.hp <= 0) killEnemy(e);
-        }
-      });
-    }
-  });
-  projectiles = projectiles.filter(p => p.life > 0);
-
-  // ---- Enemies ----
-  enemies.forEach(e => {
-    if (!e.alive) return;
-    e.flashTimer = Math.max(0, e.flashTimer - dt);
-    e.attackCd = Math.max(0, e.attackCd - dt);
-    const dx = player.x - e.x, dy = player.y - e.y;
-    const dist = Math.hypot(dx, dy);
-
-    if (e.behavior === 'chase' && dist < 400) {
-      const ang = Math.atan2(dy, dx);
-      moveEntity(e, Math.cos(ang) * e.speed, Math.sin(ang) * e.speed);
-    } else if (e.behavior === 'patrol') {
-      e.patrolAngle += dt * 0.5;
-      moveEntity(e, Math.cos(e.patrolAngle) * e.speed, Math.sin(e.patrolAngle) * e.speed);
-      if (dist < 250) {
-        const ang = Math.atan2(dy, dx);
-        moveEntity(e, Math.cos(ang) * e.speed * 0.8, Math.sin(ang) * e.speed * 0.8);
-      }
-    }
-
-    // Enemy attacks player
-    if (dist < 22 && e.attackCd <= 0 && player.invuln <= 0) {
-      player.hp -= e.atk;
-      player.invuln = 0.5;
-      e.attackCd = 1.0;
-      emitParticles(player.x, player.y, '#f04', 6, 3);
-      if (player.hp <= 0) { die(); return; }
-    }
-  });
-
-  // ---- Pickups ----
-  pickups.forEach(p => {
-    if (!p.alive) return;
-    p.bobT += dt * 3;
-    if (rectCollide({ x: player.x, y: player.y, w: player.w, h: player.h },
-                    { x: p.x, y: p.y + Math.sin(p.bobT)*3, w: p.w, h: p.h })) {
-      p.alive = false;
-      emitParticles(p.x, p.y, PICKUP_COLORS[p.type], 10, 3);
-      switch(p.type) {
-        case 'health': player.hp = Math.min(player.maxHp, player.hp + 25); addMsg('+25 ENERGY'); break;
-        case 'power': player.atk += 3; addMsg('+3 ATTACK POWER'); break;
-        case 'disc': player.discCount = Math.min(player.maxDisc, player.discCount + 2); addMsg('+2 DISCS'); break;
-        case 'speed': player.speed += 0.2; addMsg('+SPEED BOOST'); break;
-      }
-      score += 10;
-    }
-  });
-
-  // ---- Particles ----
-  particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= dt; p.vx *= 0.96; p.vy *= 0.96; });
-  particles = particles.filter(p => p.life > 0);
-
-  // ---- Respawn enemies & pickups ----
-  const aliveEnemies = enemies.filter(e => e.alive).length;
-  if (aliveEnemies < 6 + player.level * 2) {
-    enemies.push(spawnEnemy(player.x, player.y));
-  }
-  if (pickups.filter(p => p.alive).length < 8 && Math.random() < 0.01) {
-    let px, py;
-    do {
-      px = (3 + Math.random()*(MAP_W-6))*TILE;
-      py = (3 + Math.random()*(MAP_H-6))*TILE;
-    } while (wallAt(px, py));
-    pickups.push(spawnPickup(px, py));
-  }
-
-  // ---- Camera ----
-  camera.x = player.x - W/2;
-  camera.y = player.y - H/2;
-  camera.x = Math.max(0, Math.min(MAP_W * TILE - W, camera.x));
-  camera.y = Math.max(0, Math.min(MAP_H * TILE - H, camera.y));
-
-  // ---- Disc regen ----
-  if (gameTime % 5 < dt && player.discCount < player.maxDisc) player.discCount++;
-
-  updateHUD();
-}
-
-function killEnemy(e) {
-  e.alive = false;
-  emitParticles(e.x, e.y, e.color, 15, 5);
-  const xpGain = 8 + Math.floor(Math.random() * 6);
-  player.xp += xpGain;
-  score += 25;
-  addMsg(e.name + ' DEREZZED +' + xpGain + 'XP');
-  // Level up
-  if (player.xp >= player.xpNext) {
-    player.xp -= player.xpNext;
-    player.level++;
-    player.xpNext = Math.floor(player.xpNext * 1.5);
-    player.maxHp += 15;
-    player.hp = player.maxHp;
-    player.atk += 2;
-    addMsg('>> LEVEL ' + player.level + ' — SYSTEMS UPGRADED <<');
-    emitParticles(player.x, player.y, '#0ff', 20, 5);
-  }
-  // Drop pickup chance
-  if (Math.random() < 0.4) {
-    pickups.push(spawnPickup(e.x, e.y));
-  }
-}
-
-function die() {
-  state = 'dead';
-  document.getElementById('death-screen').style.display = 'flex';
-  document.getElementById('death-stats').textContent =
-    `LEVEL ${player.level} | SCORE ${score} | TIME ${Math.floor(gameTime)}s`;
-  emitParticles(player.x, player.y, '#f04', 30, 6);
-}
-
-// ==================== HUD ====================
-function updateHUD() {
-  document.getElementById('hp-bar').style.width = (player.hp/player.maxHp*100)+'%';
-  document.getElementById('hp-val').textContent = Math.ceil(player.hp) + '/' + player.maxHp;
-  document.getElementById('lvl-val').textContent = player.level;
-  document.getElementById('xp-bar').style.width = (player.xp/player.xpNext*100)+'%';
-  document.getElementById('atk-val').textContent = Math.floor(player.atk);
-  document.getElementById('disc-val').textContent = player.discCount + '/' + player.maxDisc;
-  document.getElementById('score-val').textContent = score;
-}
-
-// ==================== RENDER ====================
-function render() {
-  ctx.fillStyle = '#000010';
-  ctx.fillRect(0, 0, W, H);
-
-  const cx = camera.x, cy = camera.y;
-  const startTX = Math.floor(cx / TILE), startTY = Math.floor(cy / TILE);
-  const endTX = Math.ceil((cx + W) / TILE), endTY = Math.ceil((cy + H) / TILE);
-
-  // ---- Grid lines (Tron floor) ----
-  ctx.strokeStyle = '#0af12';
-  ctx.lineWidth = 0.5;
-  for (let tx = startTX; tx <= endTX; tx++) {
-    const sx = tx * TILE - cx;
-    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
-  }
-  for (let ty = startTY; ty <= endTY; ty++) {
-    const sy = ty * TILE - cy;
-    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
-  }
-
-  // ---- Walls ----
-  for (let ty = startTY; ty <= endTY; ty++) {
-    for (let tx = startTX; tx <= endTX; tx++) {
-      if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) continue;
-      if (map[ty][tx] === 1) {
-        const sx = tx * TILE - cx, sy = ty * TILE - cy;
-        ctx.fillStyle = '#081828';
-        ctx.fillRect(sx, sy, TILE, TILE);
-        ctx.strokeStyle = '#0af30';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(sx+1, sy+1, TILE-2, TILE-2);
-        // Glow edges
-        ctx.shadowColor = '#0af';
-        ctx.shadowBlur = 6;
-        ctx.strokeStyle = '#0af40';
-        ctx.strokeRect(sx+1, sy+1, TILE-2, TILE-2);
-        ctx.shadowBlur = 0;
-      }
-    }
-  }
-
-  // ---- Player trail ----
-  player.trail.forEach(t => {
-    const alpha = t.life / 0.4;
-    ctx.fillStyle = `rgba(0,255,255,${alpha * 0.3})`;
-    ctx.fillRect(t.x - cx - 4, t.y - cy - 4, 8, 8);
-  });
-
-  // ---- Pickups ----
-  pickups.forEach(p => {
-    if (!p.alive) return;
-    const sx = p.x - cx, sy = p.y - cy + Math.sin(p.bobT) * 3;
-    if (sx < -20 || sx > W+20 || sy < -20 || sy > H+20) return;
-    ctx.save();
-    ctx.shadowColor = PICKUP_COLORS[p.type];
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = PICKUP_COLORS[p.type];
-    ctx.beginPath();
-    // Diamond shape
-    ctx.moveTo(sx, sy - 8);
-    ctx.lineTo(sx + 6, sy);
-    ctx.lineTo(sx, sy + 8);
-    ctx.lineTo(sx - 6, sy);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  });
-
-  // ---- Enemies ----
-  enemies.forEach(e => {
-    if (!e.alive) return;
-    const sx = e.x - cx, sy = e.y - cy;
-    if (sx < -40 || sx > W+40 || sy < -40 || sy > H+40) return;
-    ctx.save();
-    ctx.shadowColor = e.color;
-    ctx.shadowBlur = e.flashTimer > 0 ? 20 : 8;
-    ctx.fillStyle = e.flashTimer > 0 ? '#fff' : e.color;
-    // Hexagonal shape
-    const r = e.w / 2;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = Math.PI / 3 * i - Math.PI / 6;
-      ctx.lineTo(sx + Math.cos(a) * r, sy + Math.sin(a) * r);
-    }
-    ctx.closePath();
-    ctx.fill();
-    // Inner detail
-    ctx.fillStyle = '#000';
-    ctx.globalAlpha = 0.4;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = Math.PI / 3 * i - Math.PI / 6;
-      ctx.lineTo(sx + Math.cos(a) * r * 0.4, sy + Math.sin(a) * r * 0.4);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    // HP bar
-    if (e.hp < e.maxHp) {
-      ctx.fillStyle = '#200';
-      ctx.fillRect(sx - r, sy - r - 8, r * 2, 3);
-      ctx.fillStyle = e.color;
-      ctx.fillRect(sx - r, sy - r - 8, r * 2 * (e.hp / e.maxHp), 3);
-    }
-    ctx.restore();
-  });
-
-  // ---- Projectiles ----
-  projectiles.forEach(p => {
-    // Trail
-    p.trail.forEach(t => {
-      const a = t.life / 0.2;
-      ctx.fillStyle = p.color + Math.floor(a * 80).toString(16).padStart(2,'0');
-      ctx.beginPath();
-      ctx.arc(t.x - cx, t.y - cy, p.size * 0.5 * a, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    const sx = p.x - cx, sy = p.y - cy;
-    ctx.save();
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 14;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(sx, sy, p.size, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(sx, sy, p.size * 0.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  });
-
-  // ---- Player ----
-  const px = player.x - cx, py = player.y - cy;
-  ctx.save();
-  // Invulnerability flash
-  if (player.invuln > 0 && Math.floor(player.invuln * 20) % 2) { ctx.globalAlpha = 0.4; }
-  // Glow
-  ctx.shadowColor = PLAYER_COLOR;
-  ctx.shadowBlur = 16;
-  // Body — diamond shape
-  ctx.fillStyle = PLAYER_COLOR;
-  ctx.beginPath();
-  const pr = player.w / 2;
-  ctx.moveTo(px, py - pr - 2);
-  ctx.lineTo(px + pr + 2, py);
-  ctx.lineTo(px, py + pr + 2);
-  ctx.lineTo(px - pr - 2, py);
-  ctx.closePath();
-  ctx.fill();
-  // Inner
-  ctx.fillStyle = '#003040';
-  ctx.beginPath();
-  ctx.moveTo(px, py - pr * 0.45);
-  ctx.lineTo(px + pr * 0.45, py);
-  ctx.lineTo(px, py + pr * 0.45);
-  ctx.lineTo(px - pr * 0.45, py);
-  ctx.closePath();
-  ctx.fill();
-  // Attack swing
-  if (player.attackAnim > 0) {
-    const ax = px + player.facing.x * 22;
-    const ay = py + player.facing.y * 22;
-    ctx.strokeStyle = '#0ff';
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 20;
-    ctx.beginPath();
-    ctx.arc(ax, ay, 14, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  // Dash indicator
-  if (dashCooldown <= 0) {
-    ctx.strokeStyle = '#0ff40';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(px, py, pr + 8, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // ---- Particles ----
-  particles.forEach(p => {
-    const a = p.life / p.maxLife;
-    ctx.globalAlpha = a;
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x - cx - p.size/2, p.y - cy - p.size/2, p.size * a, p.size * a);
-  });
-  ctx.globalAlpha = 1;
-
-  // ---- Scanline overlay ----
-  ctx.fillStyle = 'rgba(0,0,0,0.03)';
-  for (let y = 0; y < H; y += 3) {
-    ctx.fillRect(0, y, W, 1);
-  }
-
-  // ---- Vignette ----
-  const vg = ctx.createRadialGradient(W/2, H/2, W*0.3, W/2, H/2, W*0.7);
-  vg.addColorStop(0, 'transparent');
-  vg.addColorStop(1, 'rgba(0,0,8,0.5)');
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, W, H);
-
-  // ---- Minimap ----
-  const mmW = 120, mmH = 120, mmX = W - mmW - 10, mmY = H - mmH - 10;
-  ctx.fillStyle = 'rgba(0,5,20,0.8)';
-  ctx.fillRect(mmX, mmY, mmW, mmH);
-  ctx.strokeStyle = '#0af40';
-  ctx.strokeRect(mmX, mmY, mmW, mmH);
-  const mmSX = mmW / (MAP_W * TILE), mmSY = mmH / (MAP_H * TILE);
-  // Walls on minimap
-  ctx.fillStyle = '#0af20';
-  for (let y = 0; y < MAP_H; y += 2) {
-    for (let x = 0; x < MAP_W; x += 2) {
-      if (map[y][x] === 1) {
-        ctx.fillRect(mmX + x * TILE * mmSX, mmY + y * TILE * mmSY, 2, 2);
-      }
-    }
-  }
-  // Enemies on minimap
-  enemies.forEach(e => {
-    if (!e.alive) return;
-    ctx.fillStyle = e.color;
-    ctx.fillRect(mmX + e.x * mmSX - 1, mmY + e.y * mmSY - 1, 2, 2);
-  });
-  // Player on minimap
-  ctx.fillStyle = '#0ff';
-  ctx.fillRect(mmX + player.x * mmSX - 2, mmY + player.y * mmSY - 2, 4, 4);
-}
-
-// ==================== GAME LOOP ====================
-let lastTime = 0;
-let startWait = 0;
-let inputLockout = 0; // prevents start button from triggering attacks immediately
-
-function loop(time) {
-  requestAnimationFrame(loop);
-  const dt = Math.min(0.05, (time - lastTime) / 1000);
-  lastTime = time;
-
-  pollGamepad();
-  const input = getInput();
-  startWait -= dt;
-  inputLockout -= dt;
-
-  if (state === 'title') {
-    render();
-    if (input.start && startWait <= 0) {
-      state = 'playing';
-      document.getElementById('title-screen').style.display = 'none';
-      // Hide debug after game starts (we saw what we needed)
-      setTimeout(() => { debugEl.classList.remove('active'); debugVisible = false; }, 3000);
-      initGame();
-      startWait = 0.5;
-      inputLockout = 0.5; // prevent immediate attack on game start
-    }
-    return;
-  }
-
-  if (state === 'dead') {
-    render();
-    if (input.start && startWait <= 0) {
-      state = 'playing';
-      document.getElementById('death-screen').style.display = 'none';
-      initGame();
-      startWait = 0.5;
-      inputLockout = 0.5;
-    }
-    return;
-  }
-
-  // Suppress action inputs during lockout period
-  if (inputLockout > 0) {
-    input.attack = false;
-    input.disc = false;
-    input.dash = false;
-  }
-
-  update(dt, input);
-  render();
-}
-
-// Start
-startWait = 0.5;
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+function resize(){const mW=window.innerWidth-4,mH=window.innerHeight-4;let w=mW,h=mW/(4/3);if(h>mH){h=mH;w=mH*(4/3)}canvas.style.width=Math.floor(w)+'px';canvas.style.height=Math.floor(h)+'px'}
+canvas.width=800;canvas.height=600;resize();window.addEventListener('resize',resize);
+const W=800,H=600,TILE=32,MW=60,MH=60;
+const EC=['#f04','#f80','#f0f','#ff0'];
+const PC={health:'#0f4',power:'#f80',disc:'#f0f',speed:'#ff0'};
+let state='title',keys={},player,enemies,proj,pickups,parts;
+let cam={x:0,y:0},score=0,gt=0,map=[];
+let dcd=0,acd=0,dscCd=0;
+
+// JOYSTICK
+const jZone=document.getElementById('joystick-zone'),jKnob=document.getElementById('joystick-knob');
+let jVec={x:0,y:0},jTid=null,tBtns={attack:false,disc:false,dash:false};
+
+jZone.addEventListener('touchstart',e=>{e.preventDefault();jTid=e.changedTouches[0].identifier;jKnob.classList.add('active')},{passive:false});
+jZone.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){if(t.identifier===jTid){const r=jZone.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=t.clientX-cx,dy=t.clientY-cy;const mR=r.width/2-10,d=Math.hypot(dx,dy);if(d>mR){dx=dx/d*mR;dy=dy/d*mR}jVec.x=dx/mR;jVec.y=dy/mR;jKnob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`}}},{passive:false});
+function resetJ(){jTid=null;jVec.x=0;jVec.y=0;jKnob.style.transform='translate(-50%,-50%)';jKnob.classList.remove('active')}
+jZone.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===jTid)resetJ()});
+jZone.addEventListener('touchcancel',e=>{for(const t of e.changedTouches)if(t.identifier===jTid)resetJ()});
+
+// Also support mouse drag on joystick for desktop testing
+let mouseJ=false;
+jZone.addEventListener('mousedown',e=>{e.preventDefault();mouseJ=true;jKnob.classList.add('active')});
+window.addEventListener('mousemove',e=>{if(!mouseJ)return;const r=jZone.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const mR=r.width/2-10,d=Math.hypot(dx,dy);if(d>mR){dx=dx/d*mR;dy=dy/d*mR}jVec.x=dx/mR;jVec.y=dy/mR;jKnob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`});
+window.addEventListener('mouseup',()=>{if(mouseJ){mouseJ=false;resetJ()}});
+
+// ACTION BUTTONS
+function sBtn(el,k){
+const on=()=>{tBtns[k]=true;el.classList.add('pressed')};
+const off=()=>{tBtns[k]=false;el.classList.remove('pressed')};
+el.addEventListener('touchstart',e=>{e.preventDefault();on()},{passive:false});
+el.addEventListener('touchend',e=>{e.preventDefault();off()},{passive:false});
+el.addEventListener('touchcancel',off);
+el.addEventListener('mousedown',e=>{e.preventDefault();on()});
+el.addEventListener('mouseup',off);el.addEventListener('mouseleave',off)}
+sBtn(document.getElementById('btn-atk'),'attack');
+sBtn(document.getElementById('btn-disc'),'disc');
+sBtn(document.getElementById('btn-dash'),'dash');
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+
+// KEYBOARD
+window.addEventListener('keydown',e=>{keys[e.code]=true;e.preventDefault()});
+window.addEventListener('keyup',e=>{keys[e.code]=false});
+
+function getInput(){
+let mx=0,my=0;
+if(keys['KeyW']||keys['ArrowUp'])my-=1;if(keys['KeyS']||keys['ArrowDown'])my+=1;
+if(keys['KeyA']||keys['ArrowLeft'])mx-=1;if(keys['KeyD']||keys['ArrowRight'])mx+=1;
+if(Math.abs(jVec.x)>0.1)mx+=jVec.x;if(Math.abs(jVec.y)>0.1)my+=jVec.y;
+const m=Math.hypot(mx,my);if(m>1){mx/=m;my/=m}
+return{mx,my,attack:keys['KeyJ']||tBtns.attack,disc:keys['KeyK']||tBtns.disc,dash:keys['KeyL']||tBtns.dash}}
+
+// MAP
+function genMap(){map=[];for(let y=0;y<MH;y++){map[y]=[];for(let x=0;x<MW;x++){
+if(x===0||y===0||x===MW-1||y===MH-1){map[y][x]=1;continue}
+if(x%8===0||y%8===0){map[y][x]=0;continue}
+let w=false;if(Math.random()<0.08&&!(x>28&&x<32&&y>28&&y<32))w=true;
+if((x%16<3&&y%16<3)&&!(x>27&&x<33&&y>27&&y<33))w=true;map[y][x]=w?1:0}}}
+
+// ENTITIES
+function mkPlayer(){return{x:MW/2*TILE,y:MH/2*TILE,w:20,h:20,hp:100,maxHp:100,atk:10,speed:3.2,
+level:1,xp:0,xpNext:30,discCount:3,maxDisc:5,facing:{x:0,y:1},trail:[],dashTimer:0,invuln:0,attackAnim:0}}
+
+function spawnE(px,py){let x,y,d;
+do{x=(3+Math.random()*(MW-6))*TILE;y=(3+Math.random()*(MH-6))*TILE;d=Math.hypot(x-px,y-py)}
+while(d<300||d>1200||map[Math.floor(y/TILE)]?.[Math.floor(x/TILE)]===1);
+const tier=Math.min(3,Math.floor(player.level/3));
+const T=[{n:'BUG',hp:20,a:5,s:1.5,sz:14,b:'chase',c:EC[0]},{n:'SEEKER',hp:35,a:8,s:2.0,sz:16,b:'chase',c:EC[1]},
+{n:'SENTINEL',hp:60,a:12,s:1.2,sz:20,b:'patrol',c:EC[2]},{n:'VIRUS',hp:90,a:18,s:2.5,sz:22,b:'chase',c:EC[3]}];
+const t=T[Math.min(tier,Math.floor(Math.random()*(tier+1)))];
+return{x,y,w:t.sz,h:t.sz,hp:t.hp+player.level*5,maxHp:t.hp+player.level*5,atk:t.a+player.level*1.5,speed:t.s,
+name:t.n,color:t.c,behavior:t.b,attackCd:0,patrolAngle:Math.random()*Math.PI*2,flashTimer:0,alive:true}}
+
+function spawnP(x,y){const T=['health','health','power','disc','speed'];
+return{x,y,type:T[Math.floor(Math.random()*T.length)],w:12,h:12,bobT:Math.random()*100,alive:true}}
+
+function init(){genMap();player=mkPlayer();enemies=[];proj=[];pickups=[];parts=[];
+score=0;gt=0;dcd=0;acd=0;dscCd=0;
+for(let i=0;i<12;i++)enemies.push(spawnE(player.x,player.y));
+for(let i=0;i<15;i++){let px,py;do{px=(3+Math.random()*(MW-6))*TILE;py=(3+Math.random()*(MH-6))*TILE}
+while(map[Math.floor(py/TILE)]?.[Math.floor(px/TILE)]===1);pickups.push(spawnP(px,py))}}
+
+// COLLISION
+function rc(a,b){return a.x-a.w/2<b.x+b.w/2&&a.x+a.w/2>b.x-b.w/2&&a.y-a.h/2<b.y+b.h/2&&a.y+a.h/2>b.y-b.h/2}
+function wAt(px,py){const tx=Math.floor(px/TILE),ty=Math.floor(py/TILE);if(tx<0||ty<0||tx>=MW||ty>=MH)return true;return map[ty][tx]===1}
+function mvE(e,dx,dy){const h=e.w/2+1;const nx=e.x+dx;
+if(!wAt(nx-h,e.y-h)&&!wAt(nx+h,e.y-h)&&!wAt(nx-h,e.y+h)&&!wAt(nx+h,e.y+h))e.x=nx;
+const ny=e.y+dy;if(!wAt(e.x-h,ny-h)&&!wAt(e.x+h,ny-h)&&!wAt(e.x-h,ny+h)&&!wAt(e.x+h,ny+h))e.y=ny}
+
+function emitP(x,y,c,n,s){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=Math.random()*s;
+parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0.5+Math.random()*0.5,maxLife:0.5+Math.random()*0.5,color:c,size:2+Math.random()*3})}}
+function addMsg(t){const el=document.createElement('div');el.className='message';el.textContent=t;document.getElementById('messages').appendChild(el);setTimeout(()=>el.remove(),3000)}
+
+// UPDATE
+function update(dt,inp){
+if(state!=='playing')return;gt+=dt;
+let spd=player.speed;if(player.dashTimer>0){spd=10;player.dashTimer-=dt}
+mvE(player,inp.mx*spd,inp.my*spd);
+if(inp.mx!==0||inp.my!==0){player.facing={x:inp.mx,y:inp.my};player.trail.push({x:player.x,y:player.y,life:0.4})}
+if(player.trail.length>30)player.trail.shift();player.trail.forEach(t=>t.life-=dt);player.trail=player.trail.filter(t=>t.life>0);
+
+dcd-=dt;if(inp.dash&&dcd<=0&&(inp.mx!==0||inp.my!==0)){player.dashTimer=0.15;dcd=1.0;emitP(player.x,player.y,'#0ff',8,4)}
+acd-=dt;if(inp.attack&&acd<=0){acd=0.35;player.attackAnim=0.2;
+const ax=player.x+player.facing.x*24,ay=player.y+player.facing.y*24,hb={x:ax,y:ay,w:28,h:28};
+enemies.forEach(e=>{if(e.alive&&rc(hb,e)){e.hp-=player.atk;e.flashTimer=0.12;emitP(e.x,e.y,e.color,6,3);if(e.hp<=0)killE(e)}});emitP(ax,ay,'#0ff',4,2)}
+player.attackAnim=Math.max(0,player.attackAnim-dt);
+
+dscCd-=dt;if(inp.disc&&dscCd<=0&&player.discCount>0){dscCd=0.5;player.discCount--;
+const fx=player.facing.x||0,fy=player.facing.y||1,m=Math.hypot(fx,fy)||1;
+proj.push({x:player.x,y:player.y,vx:(fx/m)*6,vy:(fy/m)*6,dmg:player.atk*1.5,life:1.5,owner:'p',color:'#f0f',size:6,trail:[]})}
+
+player.invuln=Math.max(0,player.invuln-dt);
+
+proj.forEach(p=>{p.trail.push({x:p.x,y:p.y,life:0.2});if(p.trail.length>12)p.trail.shift();
+p.trail.forEach(t=>t.life-=dt);p.trail=p.trail.filter(t=>t.life>0);p.x+=p.vx;p.y+=p.vy;p.life-=dt;
+if(wAt(p.x,p.y))p.life=0;
+if(p.owner==='p')enemies.forEach(e=>{if(e.alive&&rc(p,{x:e.x,y:e.y,w:e.w,h:e.h})){
+e.hp-=p.dmg;e.flashTimer=0.12;emitP(e.x,e.y,e.color,8,3);p.life=0;if(e.hp<=0)killE(e)}})});
+proj=proj.filter(p=>p.life>0);
+
+enemies.forEach(e=>{if(!e.alive)return;e.flashTimer=Math.max(0,e.flashTimer-dt);e.attackCd=Math.max(0,e.attackCd-dt);
+const dx=player.x-e.x,dy=player.y-e.y,dist=Math.hypot(dx,dy);
+if(e.behavior==='chase'&&dist<400){const a=Math.atan2(dy,dx);mvE(e,Math.cos(a)*e.speed,Math.sin(a)*e.speed)}
+else if(e.behavior==='patrol'){e.patrolAngle+=dt*0.5;mvE(e,Math.cos(e.patrolAngle)*e.speed,Math.sin(e.patrolAngle)*e.speed);
+if(dist<250){const a=Math.atan2(dy,dx);mvE(e,Math.cos(a)*e.speed*0.8,Math.sin(a)*e.speed*0.8)}}
+if(dist<22&&e.attackCd<=0&&player.invuln<=0){player.hp-=e.atk;player.invuln=0.5;e.attackCd=1.0;emitP(player.x,player.y,'#f04',6,3);
+if(player.hp<=0){die();return}}});
+
+pickups.forEach(p=>{if(!p.alive)return;p.bobT+=dt*3;
+if(rc({x:player.x,y:player.y,w:player.w,h:player.h},{x:p.x,y:p.y+Math.sin(p.bobT)*3,w:p.w,h:p.h})){
+p.alive=false;emitP(p.x,p.y,PC[p.type],10,3);
+switch(p.type){case'health':player.hp=Math.min(player.maxHp,player.hp+25);addMsg('+25 ENERGY');break;
+case'power':player.atk+=3;addMsg('+3 ATTACK POWER');break;
+case'disc':player.discCount=Math.min(player.maxDisc,player.discCount+2);addMsg('+2 DISCS');break;
+case'speed':player.speed+=0.2;addMsg('+SPEED BOOST');break}score+=10}});
+
+parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt;p.vx*=0.96;p.vy*=0.96});parts=parts.filter(p=>p.life>0);
+
+if(enemies.filter(e=>e.alive).length<6+player.level*2)enemies.push(spawnE(player.x,player.y));
+if(pickups.filter(p=>p.alive).length<8&&Math.random()<0.01){let px,py;
+do{px=(3+Math.random()*(MW-6))*TILE;py=(3+Math.random()*(MH-6))*TILE}while(wAt(px,py));pickups.push(spawnP(px,py))}
+
+cam.x=player.x-W/2;cam.y=player.y-H/2;
+cam.x=Math.max(0,Math.min(MW*TILE-W,cam.x));cam.y=Math.max(0,Math.min(MH*TILE-H,cam.y));
+if(gt%5<dt&&player.discCount<player.maxDisc)player.discCount++;
+updHUD()}
+
+function killE(e){e.alive=false;emitP(e.x,e.y,e.color,15,5);
+const xp=8+Math.floor(Math.random()*6);player.xp+=xp;score+=25;addMsg(e.name+' DEREZZED +'+xp+'XP');
+if(player.xp>=player.xpNext){player.xp-=player.xpNext;player.level++;player.xpNext=Math.floor(player.xpNext*1.5);
+player.maxHp+=15;player.hp=player.maxHp;player.atk+=2;addMsg('>> LEVEL '+player.level+' — SYSTEMS UPGRADED <<');emitP(player.x,player.y,'#0ff',20,5)}
+if(Math.random()<0.4)pickups.push(spawnP(e.x,e.y))}
+
+function die(){state='dead';document.getElementById('death-screen').style.display='flex';
+document.getElementById('death-stats').textContent='LEVEL '+player.level+' | SCORE '+score+' | TIME '+Math.floor(gt)+'s';emitP(player.x,player.y,'#f04',30,6)}
+
+function updHUD(){
+document.getElementById('hp-bar').style.width=(player.hp/player.maxHp*100)+'%';
+document.getElementById('hp-val').textContent=Math.ceil(player.hp)+'/'+player.maxHp;
+document.getElementById('lvl-val').textContent=player.level;
+document.getElementById('xp-bar').style.width=(player.xp/player.xpNext*100)+'%';
+document.getElementById('atk-val').textContent=Math.floor(player.atk);
+document.getElementById('disc-val').textContent=player.discCount+'/'+player.maxDisc;
+document.getElementById('score-val').textContent=score}
+
+// RENDER
+function render(){
+ctx.fillStyle='#000010';ctx.fillRect(0,0,W,H);if(!player)return;
+const cx=cam.x,cy=cam.y,stx=Math.floor(cx/TILE),sty=Math.floor(cy/TILE),etx=Math.ceil((cx+W)/TILE),ety=Math.ceil((cy+H)/TILE);
+
+ctx.strokeStyle='#0af12';ctx.lineWidth=0.5;
+for(let tx=stx;tx<=etx;tx++){const sx=tx*TILE-cx;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,H);ctx.stroke()}
+for(let ty=sty;ty<=ety;ty++){const sy=ty*TILE-cy;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(W,sy);ctx.stroke()}
+
+for(let ty=sty;ty<=ety;ty++)for(let tx=stx;tx<=etx;tx++){if(tx<0||ty<0||tx>=MW||ty>=MH)continue;
+if(map[ty][tx]===1){const sx=tx*TILE-cx,sy=ty*TILE-cy;ctx.fillStyle='#081828';ctx.fillRect(sx,sy,TILE,TILE);
+ctx.save();ctx.shadowColor='#0af';ctx.shadowBlur=6;ctx.strokeStyle='#0af40';ctx.lineWidth=1;ctx.strokeRect(sx+1,sy+1,TILE-2,TILE-2);ctx.restore()}}
+
+player.trail.forEach(t=>{ctx.fillStyle='rgba(0,255,255,'+(t.life/0.4*0.3)+')';ctx.fillRect(t.x-cx-4,t.y-cy-4,8,8)});
+
+pickups.forEach(p=>{if(!p.alive)return;const sx=p.x-cx,sy=p.y-cy+Math.sin(p.bobT)*3;
+if(sx<-20||sx>W+20||sy<-20||sy>H+20)return;
+ctx.save();ctx.shadowColor=PC[p.type];ctx.shadowBlur=12;ctx.fillStyle=PC[p.type];
+ctx.beginPath();ctx.moveTo(sx,sy-8);ctx.lineTo(sx+6,sy);ctx.lineTo(sx,sy+8);ctx.lineTo(sx-6,sy);ctx.closePath();ctx.fill();ctx.restore()});
+
+enemies.forEach(e=>{if(!e.alive)return;const sx=e.x-cx,sy=e.y-cy;
+if(sx<-40||sx>W+40||sy<-40||sy>H+40)return;
+ctx.save();ctx.shadowColor=e.color;ctx.shadowBlur=e.flashTimer>0?20:8;ctx.fillStyle=e.flashTimer>0?'#fff':e.color;
+const r=e.w/2;ctx.beginPath();for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;ctx.lineTo(sx+Math.cos(a)*r,sy+Math.sin(a)*r)}ctx.closePath();ctx.fill();
+ctx.fillStyle='#000';ctx.globalAlpha=0.4;ctx.beginPath();for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;ctx.lineTo(sx+Math.cos(a)*r*0.4,sy+Math.sin(a)*r*0.4)}ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+if(e.hp<e.maxHp){ctx.fillStyle='#200';ctx.fillRect(sx-r,sy-r-8,r*2,3);ctx.fillStyle=e.color;ctx.fillRect(sx-r,sy-r-8,r*2*(e.hp/e.maxHp),3)}ctx.restore()});
+
+proj.forEach(p=>{p.trail.forEach(t=>{const a=t.life/0.2;ctx.fillStyle=p.color+Math.floor(a*80).toString(16).padStart(2,'0');
+ctx.beginPath();ctx.arc(t.x-cx,t.y-cy,p.size*0.5*a,0,Math.PI*2);ctx.fill()});
+const sx=p.x-cx,sy=p.y-cy;ctx.save();ctx.shadowColor=p.color;ctx.shadowBlur=14;ctx.fillStyle=p.color;
+ctx.beginPath();ctx.arc(sx,sy,p.size,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx,sy,p.size*0.4,0,Math.PI*2);ctx.fill();ctx.restore()});
+
+const px=player.x-cx,py=player.y-cy;ctx.save();
+if(player.invuln>0&&Math.floor(player.invuln*20)%2)ctx.globalAlpha=0.4;
+ctx.shadowColor='#0ff';ctx.shadowBlur=16;ctx.fillStyle='#0ff';const pr=player.w/2;
+ctx.beginPath();ctx.moveTo(px,py-pr-2);ctx.lineTo(px+pr+2,py);ctx.lineTo(px,py+pr+2);ctx.lineTo(px-pr-2,py);ctx.closePath();ctx.fill();
+ctx.fillStyle='#003040';ctx.beginPath();ctx.moveTo(px,py-pr*0.45);ctx.lineTo(px+pr*0.45,py);ctx.lineTo(px,py+pr*0.45);ctx.lineTo(px-pr*0.45,py);ctx.closePath();ctx.fill();
+if(player.attackAnim>0){const ax=px+player.facing.x*22,ay=py+player.facing.y*22;ctx.strokeStyle='#0ff';ctx.lineWidth=3;ctx.shadowBlur=20;ctx.beginPath();ctx.arc(ax,ay,14,0,Math.PI*2);ctx.stroke()}
+if(dcd<=0){ctx.strokeStyle='#0ff40';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py,pr+8,0,Math.PI*2);ctx.stroke()}
+ctx.restore();
+
+parts.forEach(p=>{const a=p.life/p.maxLife;ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.fillRect(p.x-cx-p.size/2,p.y-cy-p.size/2,p.size*a,p.size*a)});ctx.globalAlpha=1;
+
+ctx.fillStyle='rgba(0,0,0,0.03)';for(let y=0;y<H;y+=3)ctx.fillRect(0,y,W,1);
+const vg=ctx.createRadialGradient(W/2,H/2,W*0.3,W/2,H/2,W*0.7);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,8,0.5)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+const mmW=90,mmH=90,mmX=W-mmW-8,mmY=H-mmH-8;
+ctx.fillStyle='rgba(0,5,20,0.8)';ctx.fillRect(mmX,mmY,mmW,mmH);ctx.strokeStyle='#0af40';ctx.strokeRect(mmX,mmY,mmW,mmH);
+const msx=mmW/(MW*TILE),msy=mmH/(MH*TILE);
+ctx.fillStyle='#0af20';for(let y=0;y<MH;y+=2)for(let x=0;x<MW;x+=2)if(map[y][x]===1)ctx.fillRect(mmX+x*TILE*msx,mmY+y*TILE*msy,2,2);
+enemies.forEach(e=>{if(!e.alive)return;ctx.fillStyle=e.color;ctx.fillRect(mmX+e.x*msx-1,mmY+e.y*msy-1,2,2)});
+ctx.fillStyle='#0ff';ctx.fillRect(mmX+player.x*msx-2,mmY+player.y*msy-2,4,4)}
+
+// START/RESTART
+function startGame(){state='playing';document.getElementById('title-screen').style.display='none';
+document.getElementById('touch-controls').classList.add('active');init()}
+function restartGame(){state='playing';document.getElementById('death-screen').style.display='none';
+document.getElementById('touch-controls').classList.add('active');init()}
+
+document.getElementById('start-btn').addEventListener('click',e=>{e.preventDefault();startGame()});
+document.getElementById('restart-btn').addEventListener('click',e=>{e.preventDefault();restartGame()});
+window.addEventListener('keydown',e=>{if((e.code==='Enter'||e.code==='Space')&&state==='title')startGame();
+if((e.code==='Enter'||e.code==='Space')&&state==='dead')restartGame()});
+
+// LOOP
+let lastT=0;
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(0.05,(t-lastT)/1000);lastT=t;
+if(state==='playing'){update(dt,getInput())}render()}
 requestAnimationFrame(loop);
 </script>
-</body>
-</html>
+</body></html>
